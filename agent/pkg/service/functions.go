@@ -162,7 +162,7 @@ func (task *Task) removeTask(agent *Agent) {
 	agent.sendReport(task.From, pack)
 }
 func (task *Task) getTask(agent *Agent) {
-	if task.Meta != pkg.Config.KEYWORD {
+	if task.Meta != pkg.Config.Keyword {
 		pack := packUtils.CreatePack(task.Id, "not allowed")
 		pack.Head.Meta = "error"
 		agent.sendReport(task.From, pack)

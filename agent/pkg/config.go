@@ -5,7 +5,7 @@ type ConfigT struct {
 	DBPath    string   `yaml:"dbpath"`
 	SKEY_SIZE uint     `yaml:"skey_size"`
 	AKEY_SIZE uint     `yaml:"akey_size"`
-	KEYWORD   string   `yaml:"keyword"`
+	Keyword   string   `yaml:"keyword"`
 	Services  []string `yaml:"services"`
 	Brokers   []string `yaml:"brokers"`
 }

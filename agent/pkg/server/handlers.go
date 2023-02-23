@@ -34,7 +34,7 @@ func (server *ServerAgent) GetServiceKey(data []byte, response *packUtils.Packag
 		errorLogger.Println("wrong title")
 		return errors.New("wrong title")
 	}
-	if splits[1] != pkg.Config.KEYWORD {
+	if splits[1] != pkg.Config.Keyword {
 		errorLogger.Println("wrong keyword")
 		return errors.New("wrong keyword")
 	}

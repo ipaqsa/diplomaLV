@@ -1,5 +1,5 @@
 port: :7001
-dbpath: ./data/keys.db
+dbpath: ./keys.db
 skey_size: 16
 akey_size: 1024
 keyword: alpha
@@ -8,4 +8,4 @@ services:
     - agent
     - admin
 brokers:
-    - :7000
+    - broker:7000

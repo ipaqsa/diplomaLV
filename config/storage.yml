@@ -1,7 +1,7 @@
 port: :7000
-agent: :7001
+agent: agent:7001
 skey_size: 16
 akey_size: 1024
 keyword: alpha
 brokers:
-  - :7000
+  - broker:7000

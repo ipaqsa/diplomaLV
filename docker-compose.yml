@@ -1,0 +1,55 @@
+services:
+  agent:
+    restart: unless-stopped
+    container_name: agent
+    build:
+      context: agent
+    volumes:
+      - ./config/agent.yml:/config.yml
+  ingress:
+    restart: unless-stopped
+    container_name: ingress
+    build:
+      context: ingress
+    volumes:
+      - ./config/ingress.yml:/config.yml
+    ports:
+      - "8000:8000"
+    depends_on:
+      - agent
+  broker:
+    restart: unless-stopped
+    container_name: broker
+    build:
+      context: broker
+    volumes:
+      - ./config/broker.yml:/config.yml
+    depends_on:
+      - agent
+  admin:
+    restart: unless-stopped
+    container_name: admin
+    build:
+      context: broker
+    volumes:
+      - ./config/admin.yml:/config.yml
+    depends_on:
+      - agent
+  storage_a:
+    restart: unless-stopped
+    container_name: storage_a
+    build:
+      context: storage_a
+    volumes:
+      - ./config/storage.yml:/config.yml
+    depends_on:
+      - agent
+  storage_b:
+    restart: unless-stopped
+    container_name: storage_b
+    build:
+      context: storage_b
+    volumes:
+      - ./config/storage.yml:/config.yml
+    depends_on:
+      - agent
