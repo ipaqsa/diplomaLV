@@ -13,11 +13,11 @@ var errorLogger = logger.NewLogger("ERROR")
 
 var Storage *StorageT
 
-func NewStorage() {
+func NewStorage(path string) {
 	Storage = &StorageT{
 		key: cryptoUtils.GeneratePrivate(pkg.Config.AKEY_SIZE),
 	}
-	Storage.db = db.DataBaseInit()
+	Storage.db = db.DataBaseInit(path)
 	err := Storage.setKey()
 	if err != nil {
 		println(err.Error())

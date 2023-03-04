@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"github.com/ipaqsa/netcom/cryptoUtils"
 )
 
 func MarshalPerson(person *Person) string {
@@ -24,8 +25,8 @@ func MarshalMessages(msg *Messages) string {
 	}
 	return string(jmsg)
 }
-func UnmarshalMessage(data string) *Message {
-	var msg Message
+func UnmarshalMessages(data string) *Messages {
+	var msg Messages
 	err := json.Unmarshal([]byte(data), &msg)
 	if err != nil {
 		return nil
@@ -40,4 +41,11 @@ func UnmarshalUsers(data string) []User {
 		return nil
 	}
 	return users
+}
+
+func MarshalFile(file []byte, filename, sender string) (string, error) {
+	data := cryptoUtils.Base64Encode(file)
+	fm := FileMessage{Title: filename, Data: data, Meta: sender}
+	jfm, err := json.Marshal(fm)
+	return string(jfm), err
 }

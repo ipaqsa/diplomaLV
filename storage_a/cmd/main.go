@@ -17,5 +17,5 @@ func init() {
 }
 
 func main() {
-	service.NewStorage()
+	service.NewStorage("data/storagea.db")
 }

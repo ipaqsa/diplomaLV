@@ -83,7 +83,7 @@ func RemoveKey(key string) error {
 	defer ref.Close()
 	err = ref.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Keys"))
-		err := b.Delete([]byte(key))
+		err = b.Delete([]byte(key))
 		if err != nil {
 			return err
 		}
@@ -104,7 +104,7 @@ func GetKeys() (map[string]string, error) {
 	var data = make(map[string]string)
 	err = ref.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Keys"))
-		err := b.ForEach(func(k, v []byte) error {
+		err = b.ForEach(func(k, v []byte) error {
 			data[string(k)] = string(v)
 			return nil
 		})

@@ -1,6 +1,6 @@
-port: :7000
-agent: agent:7001
-ingress: ingress:8000
+port: :9991
+agent: :7001
+ingress: :8000
 skey_size: 16
 akey_size: 1024
 keyword: alpha

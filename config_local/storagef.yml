@@ -1,0 +1,8 @@
+port: :7000
+path: data
+agent: :7001
+skey_size: 16
+akey_size: 1024
+keyword: alpha
+brokers:
+  - :7000

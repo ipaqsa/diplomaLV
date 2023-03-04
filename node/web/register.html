@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сеть</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/register.css">
+</head>
+
+<body>
+<header>
+    <nav>
+        <ul>
+            <li class="active">
+            <li><a href="/">
+                <svg width="800px" height="800px" viewBox="0 0 25 25" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" id="home_icon">
+                    <path d="M6.5 8.75V18.5H18.5V8.75M4.5 10L12.5 5L20.5 10M14.5 18.5V11.5H10.5V18.5"
+                          stroke="white" stroke-width="1.2" />
+                </svg>
+            </a>
+            </li>
+            <li><a href="/login">
+                <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" id="enter_icon">
+
+                    <g clip-path="url(#clip0_105_1855)">
+
+                        <path d="M9 4.00024H19V18.0002C19 19.1048 18.1046 20.0002 17 20.0002H9" stroke="white"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+
+                        <path d="M12 15.0002L15 12.0002M15 12.0002L12 9.00024M15 12.0002H5" stroke="white"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_105_1855">
+                            <rect fill="white" height="24" transform="translate(0 0.000244141)" width="24" />
+                        </clipPath>
+
+                    </defs>
+
+                </svg>
+            </a></li>
+        </ul>
+    </nav>
+
+</header>
+<div class="register">
+    <div id="status">Статус</div>
+    <div class="register-title">Регистрация</div>
+    <form action="/register" method="post" id="form">
+        <div class="field">
+            <input type="text" name="login" required placeholder="Логин">
+        </div>
+        <div class="field">
+            <input type="text" name="firstname" required placeholder="Имя">
+        </div>
+        <div class="field">
+            <input type="text" name="secondname" required placeholder="Фамилия">
+        </div>
+        <div class="field">
+            <input type="password" name="password" required placeholder="Пароль">
+        </div>
+        <div class="field">
+            <input type="number" name="room" required placeholder="Подразделение">
+        </div>
+        <div>
+            <button type="submit" class="btn">Регистрация</button>
+            <a href="/login" class="btn">Уже есть аккаунт</a>
+        </div>
+    </form>
+</div>
+</body>
+<script src="static/js/register.js"></script>
+<script src="static/js/index.js"></script>
+</html>

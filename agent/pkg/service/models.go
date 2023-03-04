@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	remove = "remove"
-	save   = "save"
-	get    = "get"
+	remove  = "remove"
+	save    = "save"
+	get     = "get"
+	getPriv = "getpriv"
 )
 
 type Agent struct {

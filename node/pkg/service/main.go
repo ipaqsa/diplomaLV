@@ -15,9 +15,5 @@ func NewNode() {
 	Node = &NodeT{
 		Key: cryptoUtils.GeneratePrivate(pkg.Config.AKEY_SIZE),
 	}
-	//err := Node.setKey()
-	//if err != nil {
-	//	println(err.Error())
-	//	os.Exit(-1)
-	//}
+	Node.Status = false
 }

@@ -127,6 +127,11 @@ func (agent *Agent) sendReport(address string, pack *packUtils.Package) {
 
 func (task *Task) handle(agent *Agent) {
 	switch task.Task {
+	case getPriv:
+		infoLogger.Printf("save #%s - %s", task.Id, task.Data)
+		task.getPrivTask(agent)
+		break
+
 	case save:
 		infoLogger.Printf("save #%s - %s", task.Id, task.Data)
 		task.saveTask(agent)
@@ -176,10 +181,27 @@ func (task *Task) getTask(agent *Agent) {
 		return
 	}
 	pack := packUtils.CreatePack(task.Id, cryptoUtils.StringPublic(&key.PublicKey))
-	println(pack.Body.Data)
+	agent.sendReport(task.From, pack)
+}
+func (task *Task) getPrivTask(agent *Agent) {
+	if task.Meta != pkg.Config.Keyword {
+		pack := packUtils.CreatePack(task.Id, "not allowed")
+		pack.Head.Meta = "error"
+		agent.sendReport(task.From, pack)
+		return
+	}
+	key := agent.Get(task.Data)
+	if key == nil {
+		pack := packUtils.CreatePack(task.Id, "key`s not found")
+		pack.Head.Meta = "error"
+		agent.sendReport(task.From, pack)
+		return
+	}
+	pack := packUtils.CreatePack(task.Id, cryptoUtils.StringPrivate(key))
 	agent.sendReport(task.From, pack)
 }
 func (task *Task) unknownTask(agent *Agent) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
+	pack.Head.Meta = "error"
 	agent.sendReport(task.From, pack)
 }

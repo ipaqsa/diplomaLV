@@ -13,6 +13,7 @@ type DB struct {
 type Message struct {
 	Date  string `json:"date"`
 	Data  string `json:"data"`
+	Type  string `json:"type"`
 	Meta  string `json:"meta"`
 	Check string `json:"check"`
 }

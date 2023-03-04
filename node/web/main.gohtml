@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сеть</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/home.css">
+</head>
+
+<body>
+<header>
+    <nav>
+        <ul>
+            <li class="active">
+            <li><a href="/profile">
+                    <svg fill="white" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" id="profile_icon">
+                        <path stroke-width="1.2" d="M16 15.503A5.041 5.041 0 1 0 16 5.42a5.041 5.041 0 0 0 0 10.083zm0 2.215c-6.703 0-11 3.699-11 5.5v3.363h22v-3.363c0-2.178-4.068-5.5-11-5.5z"/>
+                    </svg>
+            </a>
+            </li>
+            <li><a href="/">
+                <svg viewBox="0 0 25 25" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" id="home_icon">
+                    <path d="M6.5 8.75V18.5H18.5V8.75M4.5 10L12.5 5L20.5 10M14.5 18.5V11.5H10.5V18.5"
+                          stroke="white" stroke-width="1.2" />
+                </svg>
+            </a>
+            </li>
+            <li><a href="/register">
+                <svg viewBox="0 0 24 24" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" id="enter_icon">
+
+                    <g clip-path="url(#clip0_105_1855)">
+
+                        <path d="M9 4.00024H19V18.0002C19 19.1048 18.1046 20.0002 17 20.0002H9" stroke="white"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+
+                        <path d="M12 15.0002L15 12.0002M15 12.0002L12 9.00024M15 12.0002H5" stroke="white"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+
+                    </g>
+
+                    <defs>
+
+                        <clipPath id="clip0_105_1855">
+
+                            <rect fill="white" height="24" transform="translate(0 0.000244141)" width="24" />
+
+                        </clipPath>
+
+                    </defs>
+
+                </svg>
+            </a></li>
+        </ul>
+    </nav>
+
+</header>
+<div class="home">
+    <div class="contact">
+        {{$receiver := .Receiver}}
+        <div class="contact-title">Контакты</div><hr>
+        {{range .Contacts.Contact}}
+        {{if eq .Login $receiver}}
+        <ul class="person active-p" >
+            <li><a class="user" href="/?current={{.Login}}">{{.FirstName}} {{.SecondName}}</a></li>
+        </ul>
+        {{else}}
+        <ul class="person" >
+            <li><a class="user" href="/?current={{.Login}}">{{.FirstName}} {{.SecondName}}</a></li>
+        </ul>
+        {{end}}
+        {{end}}
+    </div>
+    {{ if ne .Receiver ""}}
+    {{ $length := len .Contacts.Contact }}
+    {{ if ne $length 0 }}
+        <div class="chatbox">
+            <div class="chatbox-title" id="receiver">{{$receiver}}</div>
+            <div class="chatbox-area" id="area">
+                {{range .Messages.Data}}
+                    <div class="{{.Meta}}">
+                        {{if eq .Meta "me"}}
+                            <span class="time">{{.Date}}</span>
+                            <div class="msg">
+                                {{if eq .Type "file"}}
+                                    <span>
+                                     <svg id="file_icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                         <path d="M15.331 6H8.5v20h15V14.154h-8.169z"/><path d="M18.153 6h-.009v5.342H23.5v-.002z"/>
+                                     </svg>
+                                </span>
+                                {{end}}
+                                <span class="data">{{.Data}}</span>
+                                {{if eq .Check "1"}}
+                                    <span class="status">&#10003;&#10003;</span>
+                                {{else}}
+                                    <span class="status">&#10003;</span>
+                                {{end}}
+                            </div>
+                        {{else}}
+                            <div class="msg">
+                                {{if eq .Type "file"}}
+                                <span>
+                                    <svg id="file_icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M18.53 9L13 3.47C12.8595 3.32931 12.6688 3.25018 12.47 3.25H8C7.27065 3.25 6.57118 3.53973 6.05546 4.05546C5.53973 4.57118 5.25 5.27065 5.25 6V18C5.25 18.7293 5.53973 19.4288 6.05546 19.9445C6.57118 20.4603 7.27065 20.75 8 20.75H16C16.7293 20.75 17.4288 20.4603 17.9445 19.9445C18.4603 19.4288 18.75 18.7293 18.75 18V9.5C18.7421 9.3116 18.6636 9.13309 18.53 9ZM13.25 5.81L16.19 8.75H13.25V5.81ZM16 19.25H8C7.66848 19.25 7.35054 19.1183 7.11612 18.8839C6.8817 18.6495 6.75 18.3315 6.75 18V6C6.75 5.66848 6.8817 5.35054 7.11612 5.11612C7.35054 4.8817 7.66848 4.75 8 4.75H11.75V9.5C11.7526 9.69811 11.8324 9.88737 11.9725 10.0275C12.1126 10.1676 12.3019 10.2474 12.5 10.25H17.25V18C17.25 18.3315 17.1183 18.6495 16.8839 18.8839C16.6495 19.1183 16.3315 19.25 16 19.25Z" fill="#000000"/>
+                                    </svg>
+                                </span>
+                                {{end}}
+                                <span class="data">{{.Data}}</span>
+                                {{if eq .Check "1"}}
+                                    <span class="status">&#10003;&#10003;</span>
+                                {{else}}
+                                    <span class="status">&#10003;</span>
+                                {{end}}
+                            </div>
+                            <span class="time">{{.Date}}</span>
+                        {{end}}
+
+                    </div>
+                {{end}}
+            </div>
+            <div class="chatbox-form">
+                <div style="display: flex; align-items:center">
+                    <form id="sender-file" >
+                        <label for="file-input">
+                            <svg version="1.1" id="clip_icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                 width="792px" height="792px" viewBox="0 0 792 792" style="enable-background:new 0 0 792 792;" xml:space="preserve"><g>
+                                    <path d="M552.061,229.118c-13.685,0-24.723,10.595-24.723,24.29v358.911c0,36.646-13.242,66.662-38.851,92.271
+		s-56.067,38.851-93.146,38.851c-36.204,0-67.105-12.8-92.713-38.408c-25.608-25.607-38.408-56.509-38.408-92.713V476.79v-72.398
+		V226.029v-85.64v-0.886v-0.885c0-24.28,8.938-45.358,26.051-62.688c17.33-17.546,38.398-26.927,63.573-26.927
+		c25.166,0,46.244,9.381,63.563,26.927c17.113,17.33,26.052,38.408,26.052,62.688v0.885v1.762v400.427
+		c0,25.156-19.421,44.586-44.586,44.586c-24.281,0-44.153-20.306-44.153-44.586V331.984c0-13.685-10.596-24.28-24.28-24.28
+		s-24.28,10.595-24.28,24.28v209.708c0,26.041,8.834,48.117,26.927,66.22c18.102,18.102,39.736,26.927,65.787,26.927
+		c26.041,0,47.9-9.051,66.219-26.927c17.886-17.452,26.928-39.293,26.928-66.22V139.503v-0.885
+		c0-37.965-13.798-70.524-40.612-97.564C424.368,13.788,391.809,0,353.844,0c-37.974,0-70.533,13.788-97.573,41.054
+		c-26.813,27.04-40.611,59.599-40.611,97.564v0.885v86.526v178.363v72.398v135.528c0,49.889,17.659,92.271,52.535,127.146
+		S345.452,792,395.341,792s93.146-16.773,128.465-52.093c35.318-35.318,52.535-78.576,52.535-127.589V253.408
+		C576.341,239.713,565.745,229.118,552.061,229.118z"/>
+                                </g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g>
+</svg>
+                        </label>
+                        <input type="file" id="file-input" multiple accept="*/*" onchange="handleFiles(this.files)">
+
+                    </form>
+                </div>
+                <form id="sender">
+                    <textarea name="data" placeholder="Введите сообщение" class="text" id="sender-area" autofocus ></textarea>
+                    <button class="btn">Отправить</button>
+                </form>
+            </div>
+        </div>
+    {{ end }}
+    {{ end }}
+</div>
+</body>
+<script src="static/js/main.js"></script>
+</html>

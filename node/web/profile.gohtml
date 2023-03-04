@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сеть</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/home.css">
+    <link rel="stylesheet" href="static/css/profile.css">
+</head>
+
+<body>
+<header>
+    <nav>
+        <ul>
+            <li class="active">
+            <li><a href="/profile">
+                    <svg fill="white" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" id="profile_icon">
+                        <path stroke-width="1.2" d="M16 15.503A5.041 5.041 0 1 0 16 5.42a5.041 5.041 0 0 0 0 10.083zm0 2.215c-6.703 0-11 3.699-11 5.5v3.363h22v-3.363c0-2.178-4.068-5.5-11-5.5z"/>
+                    </svg>
+                </a>
+            </li>
+            <li><a href="/">
+                    <svg viewBox="0 0 25 25" fill="none"
+                         xmlns="http://www.w3.org/2000/svg" id="home_icon">
+                        <path d="M6.5 8.75V18.5H18.5V8.75M4.5 10L12.5 5L20.5 10M14.5 18.5V11.5H10.5V18.5"
+                              stroke="white" stroke-width="1.2" />
+                    </svg>
+                </a>
+            </li>
+            <li><a href="/register">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         xmlns="http://www.w3.org/2000/svg" id="enter_icon">
+
+                        <g clip-path="url(#clip0_105_1855)">
+
+                            <path d="M9 4.00024H19V18.0002C19 19.1048 18.1046 20.0002 17 20.0002H9" stroke="white"
+                                  stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+
+                            <path d="M12 15.0002L15 12.0002M15 12.0002L12 9.00024M15 12.0002H5" stroke="white"
+                                  stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+
+                        </g>
+
+                        <defs>
+
+                            <clipPath id="clip0_105_1855">
+
+                                <rect fill="white" height="24" transform="translate(0 0.000244141)" width="24" />
+
+                            </clipPath>
+
+                        </defs>
+
+                    </svg>
+                </a></li>
+        </ul>
+    </nav>
+
+</header>
+<div class="profile">
+    <div class="profile-remove">
+        <form action="/remove" method="post">
+            <input class="btn remove" type="submit"  value="Удалить аккаунт">
+        </form>
+    </div>
+    <div class="profile-form">
+        <div id="status">Статус</div>
+        <div class="profile-title">Профиль</div>
+        <form action="/update" id="form">
+            <div class="field">
+                <span class="field-span">Логин: </span>
+                <input type="text" name="login" required placeholder="Логин" disabled value="{{$.Login}}">
+            </div>
+            <div class="field">
+                <span class="field-span">Имя: </span>
+                <input type="text" name="firstname" required placeholder="Имя" value="{{.Firstname}}">
+            </div>
+            <div class="field">
+                <span class="field-span">Фамилия: </span>
+                <input type="text" name="secondname" required placeholder="Фамилия" value="{{.Lastname}}">
+            </div>
+            <div class="field">
+                <span class="field-span">Пароль: </span>
+                <input type="password" name="password" required placeholder="Пароль" value="{{.Hash}}">
+            </div>
+            <div class="field">
+                <span class="field-span">Подразделение: </span>
+                <input type="number" name="room" required placeholder="Подразделение" value="{{.Room}}">
+            </div>
+            <div>
+                <button type="submit" class="btn">Обновить</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+<script src="static/js/profile.js"></script>
+<script src="static/js/index.js"></script>
+</html>

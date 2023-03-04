@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-var services = []string{"agent", "storage_a", "storage_b", "admin"}
+var services = []string{"agent", "storage_a", "storage_b", "storage_f", "admin"}
 
 type BrokerT struct {
 	cache   Cache

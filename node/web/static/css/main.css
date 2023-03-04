@@ -1,0 +1,83 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0px;
+    margin-top: 0%;
+    background: rgb(223, 211, 211);
+}
+
+header {
+    background-color: rgb(57, 195, 230);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    padding-right: 25px;
+    box-shadow: 0 0 25px 0 black;
+}
+
+header * {
+    display: inline;
+}
+ul {
+    list-style-type: none;
+}
+#profile_icon {
+    height: 50px;
+    width: 50px;
+}
+#home_icon {
+    height: 55px;
+    width: 55px;
+}
+#enter_icon {
+    height: 55px;
+    width: 55px;
+}
+#file_icon {
+    fill: white;
+    cursor: pointer;
+    height: 35px;
+    width: 35px;
+}
+#clip_icon {
+    height: 50px;
+    width: 55px;
+}
+
+nav a {
+    padding-bottom: 10px;
+    cursor: pointer;
+}
+
+.active-svg path {
+    stroke: blue;
+}
+
+#status {
+    display: none;
+    margin-right: 15px;
+    margin-top: 15px;
+    text-decoration: none;
+    padding: 10px;
+    font-size: 20px ;
+    border-radius: 15px;
+    color: rgb(57, 195, 230);
+    border: 1px solid rgb(57, 195, 230);
+    cursor: pointer;
+}
+label {
+    cursor: pointer;
+}
+
+#file-input {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+}

@@ -68,54 +68,6 @@ func (store *StorageT) SelfKey() *rsa.PrivateKey {
 	return store.key
 }
 
-func (store *StorageT) save(task *Task) error {
-	person, err := unmarshalPerson(task.Data)
-	if err != nil {
-		return err
-	}
-	err = store.db.RegisterPerson(person)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (store *StorageT) auth(task *Task) (*packUtils.Package, error) {
-	person, err := store.db.GetPerson(task.Data, task.Meta)
-	if err != nil {
-		return nil, err
-	}
-	sperson := marshalPerson(person)
-	if sperson == "" {
-		return nil, err
-	}
-	return packUtils.CreatePack(task.Id, sperson), nil
-}
-func (store *StorageT) remove(task *Task) {
-	err := store.db.RemovePerson(task.Data)
-	if err != nil {
-		errorLogger.Println(err.Error())
-		return
-	}
-}
-func (store *StorageT) users(task *Task) (*packUtils.Package, error) {
-	if task.Meta != pkg.Config.Keyword {
-		return nil, errors.New("not allowed")
-	}
-	room, err := strconv.Atoi(task.Data)
-	if err != nil {
-		return nil, err
-	}
-	usrs := store.db.GetAllMember(room)
-	if usrs == nil || len(usrs) == 0 {
-		return nil, errors.New("no users")
-	}
-	jusrs := marshalUsers(usrs)
-	if jusrs == "" {
-		return nil, errors.New("marshal fail")
-	}
-	return packUtils.CreatePack(task.Id, jusrs), nil
-}
-
 func (store *StorageT) mail() {
 	for {
 		store.getMail()
@@ -170,6 +122,10 @@ func (store *StorageT) sendReport(address string, pack *packUtils.Package, broke
 
 func (task *Task) handle(store *StorageT, brokerKey *rsa.PublicKey) {
 	switch task.Task {
+	case update:
+		infoLogger.Printf("update #%s", task.Id)
+		task.updateTask(store, brokerKey)
+		break
 	case users:
 		infoLogger.Printf("users #%s", task.Id)
 		task.usersTask(store, brokerKey)
@@ -202,6 +158,17 @@ func (task *Task) usersTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	}
 	store.sendReport(task.From, pack, brokerKey)
 }
+func (task *Task) updateTask(store *StorageT, brokerKey *rsa.PublicKey) {
+	err := store.update(task)
+	if err != nil {
+		pack := packUtils.CreatePack(task.Id, err.Error())
+		pack.Head.Meta = "error"
+		store.sendReport(task.From, pack, brokerKey)
+		return
+	}
+	pack := packUtils.CreatePack(task.Id, "ok")
+	store.sendReport(task.From, pack, brokerKey)
+}
 func (task *Task) saveTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	err := store.save(task)
 	if err != nil {
@@ -230,5 +197,65 @@ func (task *Task) authTask(store *StorageT, brokerKey *rsa.PublicKey) {
 }
 func (task *Task) unknownTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
+	pack.Head.Meta = "error"
 	store.sendReport(task.From, pack, brokerKey)
+}
+
+func (store *StorageT) save(task *Task) error {
+	person, err := unmarshalPerson(task.Data)
+	if err != nil {
+		return err
+	}
+	err = store.db.RegisterPerson(person)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (store *StorageT) update(task *Task) error {
+	person, err := unmarshalPerson(task.Data)
+	if err != nil {
+		return err
+	}
+	err = store.db.UpdatePerson(person, task.Meta)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (store *StorageT) auth(task *Task) (*packUtils.Package, error) {
+	person, err := store.db.GetPerson(task.Data, task.Meta)
+	if err != nil {
+		return nil, err
+	}
+	sperson := marshalPerson(person)
+	if sperson == "" {
+		return nil, err
+	}
+	return packUtils.CreatePack(task.Id, sperson), nil
+}
+func (store *StorageT) remove(task *Task) {
+	err := store.db.RemovePerson(task.Data)
+	if err != nil {
+		errorLogger.Println(err.Error())
+		return
+	}
+}
+func (store *StorageT) users(task *Task) (*packUtils.Package, error) {
+	if task.Meta != pkg.Config.Keyword {
+		return nil, errors.New("not allowed")
+	}
+	room, err := strconv.Atoi(task.Data)
+	if err != nil {
+		return nil, err
+	}
+	usrs := store.db.GetAllMember(room)
+	if usrs == nil || len(usrs) == 0 {
+		return nil, errors.New("no users")
+	}
+	jusrs := marshalUsers(usrs)
+	if jusrs == "" {
+		return nil, errors.New("marshal fail")
+	}
+	return packUtils.CreatePack(task.Id, jusrs), nil
 }

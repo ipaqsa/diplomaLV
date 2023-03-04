@@ -6,6 +6,8 @@ services:
       context: agent
     volumes:
       - ./config/agent.yml:/config.yml
+    ports:
+      - "7001:7001"
   ingress:
     restart: unless-stopped
     container_name: ingress
@@ -30,7 +32,7 @@ services:
     restart: unless-stopped
     container_name: admin
     build:
-      context: broker
+      context: admin
     volumes:
       - ./config/admin.yml:/config.yml
     depends_on:
@@ -51,5 +53,14 @@ services:
       context: storage_b
     volumes:
       - ./config/storage.yml:/config.yml
+    depends_on:
+      - agent
+  storage_f:
+    restart: unless-stopped
+    container_name: storage_f
+    build:
+      context: storage_f
+    volumes:
+      - ./config/storagef.yml:/config.yml
     depends_on:
       - agent

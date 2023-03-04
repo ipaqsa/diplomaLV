@@ -17,5 +17,6 @@ func init() {
 }
 
 func main() {
-	service.NewStorage()
+	//service.NewStorage(pkg.Config.PathToDB)
+	service.NewStorage("data/msg.db")
 }

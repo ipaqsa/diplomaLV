@@ -7,6 +7,8 @@ import (
 const (
 	register = "register"
 	auth     = "auth"
+	remove   = "remove"
+	update   = "update"
 )
 
 type AdminT struct {

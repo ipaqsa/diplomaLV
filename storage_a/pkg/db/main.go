@@ -11,8 +11,8 @@ import (
 var infoLogger = logger.NewLogger("INFO")
 var errorLogger = logger.NewLogger("ERROR")
 
-func DataBaseInit() *DB {
-	db, err := sql.Open("sqlite3", "./data/storage.db")
+func DataBaseInit(path string) *DB {
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		errorLogger.Println(err.Error())
 		return nil
@@ -60,6 +60,26 @@ func (db *DB) RegisterPerson(person *Person) error {
 	defer db.mtx.Unlock()
 	_, err = db.ptr.Exec(`INSERT INTO storage (login, hash, firstname, lastname, room) VALUES ($1, $2, $3, $4, $5)`,
 		person.Login, cryptoUtils.Base64Encode(cryptoUtils.HashSum(cryptoUtils.Base64Decode(person.Hash))), person.Firstname, person.Lastname, person.Room)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (db *DB) UpdatePerson(person *Person, passwordChange string) error {
+	p, err := db.GetPerson(person.Login, person.Hash)
+	if err == nil || p != nil {
+		if err.Error() != "wrong password" && p != nil {
+			return errors.New("login doesnt exists")
+		}
+	}
+	db.mtx.Lock()
+	defer db.mtx.Unlock()
+	if passwordChange == "yes" {
+		_, err = db.ptr.Exec(`UPDATE storage SET hash=$1, firstname=$2, lastname=$3, room=$4 WHERE login = $5`,
+			cryptoUtils.Base64Encode(cryptoUtils.HashSum(cryptoUtils.Base64Decode(person.Hash))), person.Firstname, person.Lastname, person.Room, person.Login)
+	} else {
+		_, err = db.ptr.Exec(`UPDATE storage SET firstname=$1, lastname=$2, room=$3 WHERE login = $4`, person.Firstname, person.Lastname, person.Room, person.Login)
+	}
 	if err != nil {
 		return err
 	}

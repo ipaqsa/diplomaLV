@@ -72,7 +72,6 @@ func (admin *AdminT) mail() {
 		admin.getMail()
 	}
 }
-
 func (admin *AdminT) getMail() {
 	brokerKey, err := admin.getBrokerKey()
 	if err != nil {
@@ -122,6 +121,12 @@ func (admin *AdminT) sendReport(address string, pack *packUtils.Package, brokerK
 
 func (task *Task) handle(admin *AdminT, brokerKey *rsa.PublicKey) {
 	switch task.Task {
+	case update:
+		task.updateTask(admin, brokerKey)
+		break
+	case remove:
+		task.removeTask(admin, brokerKey)
+		break
 	case register:
 		task.registerTask(admin, brokerKey)
 		break
@@ -145,6 +150,17 @@ func (task *Task) registerTask(admin *AdminT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "ok")
 	admin.sendReport(task.From, pack, brokerKey)
 }
+func (task *Task) removeTask(admin *AdminT, brokerKey *rsa.PublicKey) {
+	err := admin.remove(task)
+	if err != nil {
+		pack := packUtils.CreatePack(task.Id, err.Error())
+		pack.Head.Meta = "error"
+		admin.sendReport(task.From, pack, brokerKey)
+		return
+	}
+	pack := packUtils.CreatePack(task.Id, "ok")
+	admin.sendReport(task.From, pack, brokerKey)
+}
 func (task *Task) authTask(admin *AdminT, brokerKey *rsa.PublicKey) {
 	pack, err := admin.auth(task)
 	if err != nil {
@@ -155,8 +171,20 @@ func (task *Task) authTask(admin *AdminT, brokerKey *rsa.PublicKey) {
 	}
 	admin.sendReport(task.From, pack, brokerKey)
 }
+func (task *Task) updateTask(admin *AdminT, brokerKey *rsa.PublicKey) {
+	err := admin.update(task)
+	if err != nil {
+		pack := packUtils.CreatePack(task.Id, err.Error())
+		pack.Head.Meta = "error"
+		admin.sendReport(task.From, pack, brokerKey)
+		return
+	}
+	pack := packUtils.CreatePack(task.Id, "ok")
+	admin.sendReport(task.From, pack, brokerKey)
+}
 func (task *Task) unknownTask(admin *AdminT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
+	pack.Head.Meta = "error"
 	admin.sendReport(task.From, pack, brokerKey)
 }
 
@@ -191,6 +219,17 @@ func (admin *AdminT) register(task *Task) error {
 	}
 	return nil
 }
+func (admin *AdminT) update(task *Task) error {
+	infoLogger.Printf("update #%s - %s\n", task.Id, task.Meta)
+	data, meta, err := admin.sendMail("storage_a", "update", task.Data, "")
+	if err != nil {
+		return err
+	}
+	if meta == "error" {
+		return errors.New(data)
+	}
+	return nil
+}
 func (admin *AdminT) auth(task *Task) (*packUtils.Package, error) {
 	infoLogger.Printf("auth #%s - %s\n", task.Id, task.Data)
 	data, meta, err := admin.sendMail("storage_a", "auth", task.Data, task.Meta)
@@ -203,7 +242,7 @@ func (admin *AdminT) auth(task *Task) (*packUtils.Package, error) {
 	}
 	pack := packUtils.CreatePack(task.Id, data)
 	infoLogger.Printf("auth #%s(key`s getting) - %s\n", task.Id, task.Data)
-	data, meta, err = admin.sendMail("agent", "get", task.Data, pkg.Config.Keyword)
+	data, meta, err = admin.sendMail("agent", "getpriv", task.Data, pkg.Config.Keyword)
 	if err != nil {
 		errorLogger.Println(err.Error())
 		return nil, err
@@ -214,7 +253,21 @@ func (admin *AdminT) auth(task *Task) (*packUtils.Package, error) {
 	pack.Head.Meta = data
 	return pack, nil
 }
-
+func (admin *AdminT) remove(task *Task) error {
+	infoLogger.Printf("remove login #%s - %s\n", task.Id, task.Data)
+	_, _, err := admin.sendMail("storage_a", "remove", task.Data, task.Meta)
+	if err != nil {
+		errorLogger.Println(err.Error())
+		return err
+	}
+	infoLogger.Printf("remove key #%s - %s\n", task.Id, task.Data)
+	_, _, err = admin.sendMail("agent", "remove", task.Data, pkg.Config.Keyword)
+	if err != nil {
+		errorLogger.Println(err.Error())
+		return err
+	}
+	return nil
+}
 func (admin *AdminT) sendMail(service, task, data, meta string) (string, string, error) {
 	brokerKey, err := admin.getBrokerKey()
 	if err != nil {

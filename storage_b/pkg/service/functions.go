@@ -65,10 +65,6 @@ func (store *StorageT) getBrokerKey() (*rsa.PublicKey, error) {
 	return agentkey, nil
 }
 
-func (store *StorageT) SelfKey() *rsa.PrivateKey {
-	return store.key
-}
-
 func (store *StorageT) getKey(login string) *rsa.PublicKey {
 	data, _, err := store.sendMail("agent", "get", login, "")
 	if err != nil {
@@ -77,13 +73,12 @@ func (store *StorageT) getKey(login string) *rsa.PublicKey {
 	}
 	return cryptoUtils.ParsePublic(data)
 }
-
 func (store *StorageT) sendMail(service, task, data, meta string) (string, string, error) {
 	broker, err := store.getBrokerKey()
 	if err != nil {
 		return "", "", err
 	}
-	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, store.SelfKey(), broker)
+	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, store.selfKey(), broker)
 	pack := packUtils.CreatePack(service+"."+task, data)
 	pack.Head.Meta = meta
 	for _, broker := range pkg.Config.Brokers {
@@ -96,59 +91,8 @@ func (store *StorageT) sendMail(service, task, data, meta string) (string, strin
 	}
 	return "", "", errors.New("send fail")
 }
-
-func (store *StorageT) save(task *Task) error {
-	msg := db.UnmarshalMessage(task.Data)
-	if msg == nil {
-		return errors.New("unmarshal error")
-	}
-	type_save := 0
-
-	receiver := task.Meta
-	sender := msg.Meta
-	if receiver == sender {
-		type_save = 1
-	}
-	sender = strings.ReplaceAll(cryptoUtils.Base64Encode(cryptoUtils.HashSum(cryptoUtils.Base64Decode(sender))), "/", "S")
-	receiver = strings.ReplaceAll(cryptoUtils.Base64Encode(cryptoUtils.HashSum(cryptoUtils.Base64Decode(receiver))), "/", "S")
-	//
-	sender = strings.ReplaceAll(sender, "+", "S")
-	receiver = strings.ReplaceAll(receiver, "+", "S")
-	//
-	sender = strings.ReplaceAll(sender, "=", "S")
-	receiver = strings.ReplaceAll(receiver, "=", "S")
-	//
-	sender = strings.ReplaceAll(sender, "?", "S")
-	receiver = strings.ReplaceAll(receiver, "?", "S")
-	//
-	err := store.db.AddMessage(sender, receiver, msg.Data, msg.Date, type_save)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (store *StorageT) get(task *Task) (*packUtils.Package, error) {
-	receiver := task.Meta
-	sender := task.Data
-
-	sender = strings.ReplaceAll(cryptoUtils.Base64Encode(cryptoUtils.HashSum(cryptoUtils.Base64Decode(sender))), "/", "S")
-	receiver = strings.ReplaceAll(cryptoUtils.Base64Encode(cryptoUtils.HashSum(cryptoUtils.Base64Decode(receiver))), "/", "S")
-
-	sender = strings.ReplaceAll(sender, "+", "S")
-	receiver = strings.ReplaceAll(receiver, "+", "S")
-
-	sender = strings.ReplaceAll(sender, "=", "S")
-	receiver = strings.ReplaceAll(receiver, "=", "S")
-
-	sender = strings.ReplaceAll(sender, "?", "S")
-	receiver = strings.ReplaceAll(receiver, "?", "S")
-
-	msg := store.db.GetMessages(sender, receiver)
-	if msg == nil {
-		return nil, errors.New("no msg")
-	}
-	return packUtils.CreatePack("answer", db.MarshalMessages(msg)), nil
+func (store *StorageT) selfKey() *rsa.PrivateKey {
+	return store.key
 }
 
 func (store *StorageT) mail() {
@@ -156,7 +100,6 @@ func (store *StorageT) mail() {
 		store.getMail()
 	}
 }
-
 func (store *StorageT) getMail() {
 	brokerKey, err := store.getBrokerKey()
 	if err != nil {
@@ -194,16 +137,6 @@ func (store *StorageT) getMail() {
 		}
 	}
 }
-
-func (store *StorageT) sendReport(address string, pack *packUtils.Package, brokerKey *rsa.PublicKey) {
-	infoLogger.Println("send report")
-	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, store.key, brokerKey)
-	pack, err := rpc.Send(address, "ServerBroker.PutReport", pack, opt)
-	if err != nil {
-		errorLogger.Println(err.Error())
-	}
-}
-
 func (task *Task) handle(store *StorageT, brokerKey *rsa.PublicKey) {
 	switch task.Task {
 	case save:
@@ -234,7 +167,6 @@ func (task *Task) saveTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "ok")
 	store.sendReport(task.From, pack, brokerKey)
 }
-
 func (task *Task) getTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	pack, err := store.get(task)
 	if err != nil {
@@ -246,8 +178,54 @@ func (task *Task) getTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	store.sendReport(task.From, pack, brokerKey)
 	store.sendReport(task.From, pack, brokerKey)
 }
-
 func (task *Task) unknownTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
+	pack.Head.Meta = "error"
 	store.sendReport(task.From, pack, brokerKey)
+}
+func (store *StorageT) sendReport(address string, pack *packUtils.Package, brokerKey *rsa.PublicKey) {
+	infoLogger.Println("send report")
+	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, store.key, brokerKey)
+	pack, err := rpc.Send(address, "ServerBroker.PutReport", pack, opt)
+	if err != nil {
+		errorLogger.Println(err.Error())
+	}
+}
+
+func (store *StorageT) save(task *Task) error {
+	msg := db.UnmarshalMessage(task.Data)
+	if msg == nil {
+		return errors.New("unmarshal error")
+	}
+	typeSave := 0
+
+	splits := strings.Split(task.Meta, ",")
+	if len(splits) != 2 && len(splits) != 1 {
+		return errors.New("meta wrong format")
+	}
+	receiver := splits[0]
+	sender := msg.Meta
+	if len(splits) == 2 && sender == splits[1] {
+		typeSave = 1
+	}
+
+	sender, receiver = hashPrepare(sender, receiver)
+
+	err := store.db.AddMessage(sender, receiver, msg.Data, msg.Date, msg.Type, typeSave)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (store *StorageT) get(task *Task) (*packUtils.Package, error) {
+	receiver := task.Meta
+	sender := task.Data
+
+	sender, receiver = hashPrepare(sender, receiver)
+
+	msg := store.db.GetMessages(sender, receiver)
+	if msg == nil {
+		return nil, errors.New("no msg")
+	}
+	return packUtils.CreatePack(task.Id, db.MarshalMessages(msg)), nil
 }

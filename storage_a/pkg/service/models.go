@@ -10,6 +10,7 @@ const (
 	save   = "save"
 	auth   = "auth"
 	users  = "users"
+	update = "update"
 )
 
 type StorageT struct {
