@@ -8,6 +8,7 @@ import (
 	"github.com/ipaqsa/netcom/cryptoUtils"
 	"github.com/ipaqsa/netcom/packUtils"
 	"github.com/ipaqsa/netcom/rpc"
+	"io/ioutil"
 	"os"
 	"storage_f/pkg"
 	"strings"
@@ -144,6 +145,7 @@ func (task *Task) handle(store *StorageT, brokerKey *rsa.PublicKey) {
 		task.saveTask(store, brokerKey)
 		break
 	case remove:
+		infoLogger.Printf("remove #%s", task.Id)
 		task.removeTask(store, brokerKey)
 		break
 	case get:
@@ -179,7 +181,6 @@ func (task *Task) getTask(store *StorageT, brokerKey *rsa.PublicKey) {
 		return
 	}
 	store.sendReport(task.From, pack, brokerKey)
-	store.sendReport(task.From, pack, brokerKey)
 }
 func (task *Task) unknownTask(store *StorageT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
@@ -202,12 +203,12 @@ func (store *StorageT) save(task *Task) error {
 	}
 	typeSave := 0
 
+	sender := fileMessage.Meta
 	splits := strings.Split(task.Meta, ",")
 	if len(splits) != 2 && len(splits) != 1 {
 		return errors.New("meta wrong format")
 	}
 	receiver := splits[0]
-	sender := fileMessage.Meta
 	if len(splits) == 2 && sender == splits[1] {
 		typeSave = 1
 	}
@@ -220,7 +221,16 @@ func (store *StorageT) save(task *Task) error {
 	return nil
 }
 func (store *StorageT) get(task *Task) (*packUtils.Package, error) {
-	return nil, nil
+	fileMessage, err := UnmarshalMessage(task.Data)
+	if err != nil {
+		return nil, err
+	}
+	sender, receiver := hashPrepare(fileMessage.Meta, task.Meta)
+	file, err := getFile(fileMessage.Title, sender, receiver)
+	if err != nil {
+		return nil, err
+	}
+	return packUtils.CreatePack(task.Id, file), nil
 }
 
 func saveFile(filename, data, sender, receiver string, t int) error {
@@ -243,4 +253,19 @@ func saveFile(filename, data, sender, receiver string, t int) error {
 		return err
 	}
 	return nil
+}
+func getFile(filename, sender, receiver string) (string, error) {
+	path := fmt.Sprintf("%s/%s/send/%s/%s", pkg.Config.Path, sender, receiver, filename)
+	if !isExist(path) {
+		return "", errors.New("file`s not found")
+	}
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	jfile, err := MarshalFile(file, filename, sender)
+	if err != nil {
+		return "", err
+	}
+	return jfile, nil
 }

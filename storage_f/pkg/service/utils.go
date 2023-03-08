@@ -39,3 +39,10 @@ func UnmarshalMessage(data string) (*FileMessage, error) {
 	}
 	return &file, err
 }
+
+func MarshalFile(file []byte, filename, sender string) (string, error) {
+	data := cryptoUtils.Base64Encode(file)
+	fm := FileMessage{Title: filename, Data: data, Meta: sender}
+	jfm, err := json.Marshal(fm)
+	return string(jfm), err
+}

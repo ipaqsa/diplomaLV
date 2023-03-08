@@ -2,6 +2,8 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/ipaqsa/netcom/cryptoUtils"
 	"html/template"
 	"io"
@@ -11,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func profileHandler(w http.ResponseWriter, r *http.Request) {
@@ -135,6 +138,10 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 func sendHandler(w http.ResponseWriter, r *http.Request) {
 	infoLogger.Println("send request")
 	if r.Method == http.MethodPost {
+		if !service.Node.Status {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		decoder := json.NewDecoder(r.Body)
 		var t sendFromHTML
 		err := decoder.Decode(&t)
@@ -197,6 +204,10 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 func fileHandler(w http.ResponseWriter, r *http.Request) {
 	infoLogger.Print("file request")
 	if r.Method == http.MethodPost {
+		if !service.Node.Status {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 		err := r.ParseMultipartForm(32 << 20)
 		if err != nil {
 			errorLogger.Printf("parse from client error: %s", err.Error())
@@ -224,6 +235,56 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		sendAnswer(w, "ok", "")
+	}
+}
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
+	infoLogger.Print("download request")
+	if r.Method == http.MethodGet {
+		if !service.Node.Status {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		q := r.URL.RawQuery
+		parts := strings.Split(q, "&")
+		if len(parts) != 2 {
+			var err = errors.New("wrong query")
+			sendAnswer(w, "Error", err.Error())
+			errorLogger.Println(err.Error())
+			return
+		}
+		receiverPart := strings.Split(parts[0], "=")
+		if len(receiverPart) != 2 {
+			var err = errors.New("wrong query")
+			sendAnswer(w, "Error", err.Error())
+			errorLogger.Println(err.Error())
+			return
+		}
+		receiver := receiverPart[1]
+
+		filenamePart := strings.Split(parts[1], "=")
+		if len(filenamePart) != 2 {
+			var err = errors.New("wrong query")
+			sendAnswer(w, "Error", err.Error())
+			errorLogger.Println(err.Error())
+			return
+		}
+		filename := filenamePart[1]
+
+		file, err := service.Node.GetFile(filename, receiver)
+		if err != nil {
+			sendAnswer(w, "Error", err.Error())
+			errorLogger.Println(err.Error())
+			return
+		}
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+		_, err = w.Write(cryptoUtils.Base64Decode(file.Data))
+		if err != nil {
+			errorLogger.Println(err.Error())
+			return
+		}
+		//http.ServeContent(w, r, filename, time.Now(), bytes.NewReader(cryptoUtils.Base64Decode(file.Data)))
 	}
 }
 

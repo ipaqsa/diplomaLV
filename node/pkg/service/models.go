@@ -1,6 +1,8 @@
 package service
 
-import "crypto/rsa"
+import (
+	"crypto/rsa"
+)
 
 type NodeT struct {
 	Person *Person
@@ -32,10 +34,16 @@ type User struct {
 	Login     string `json:"login"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	Count     int    `json:"count"`
 }
 
 type FileMessage struct {
 	Title string `json:"title"`
 	Data  string `json:"data"`
 	Meta  string `json:"meta"`
+}
+
+type UsersRequest struct {
+	SenderKey string `json:"senderKey"`
+	Room      string `json:"room"`
 }

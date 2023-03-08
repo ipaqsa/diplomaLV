@@ -9,6 +9,7 @@ const (
 	remove = "remove"
 	save   = "save"
 	get    = "get"
+	count  = "count"
 )
 
 type StorageT struct {

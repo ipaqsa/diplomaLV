@@ -26,3 +26,8 @@ type Task struct {
 	Data    string `json:"data"`
 	Meta    string `json:"meta"`
 }
+
+type UsersRequest struct {
+	SenderKey string `json:"senderKey"`
+	Room      string `json:"room"`
+}

@@ -14,6 +14,7 @@ func Run(port string) {
 	service.NewNode()
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/download", downloadHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/remove", removeHandler)
 	http.HandleFunc("/update", updateHandler)

@@ -120,7 +120,6 @@ func (db *DB) GetMessages(sender, receiver string) *Messages {
 			return &messages
 		}
 		message.Meta = "nome"
-		println(message.Type)
 		messages.Data = append(messages.Data, message)
 	}
 	err = db.updateStatus(sender, receiver)
@@ -142,4 +141,18 @@ func (db *DB) updateStatus(sender, receiver string) error {
 		return err
 	}
 	return nil
+}
+
+func (db *DB) CountUnmarkMessages(sender, receiver string) int {
+	db.mtx.Lock()
+	defer db.mtx.Unlock()
+
+	var count int
+	query := "SELECT count(*) FROM" + " `" + sender + "_rec` WHERE sender=$1 AND check_s = 0"
+	err := db.ptr.QueryRow(query, receiver).Scan(&count)
+	if err != nil {
+		errorLogger.Printf("%s", err.Error())
+		return count
+	}
+	return count
 }

@@ -245,7 +245,11 @@ func (store *StorageT) users(task *Task) (*packUtils.Package, error) {
 	if task.Meta != pkg.Config.Keyword {
 		return nil, errors.New("not allowed")
 	}
-	room, err := strconv.Atoi(task.Data)
+	ureq, err := unmarshalUserRequest(task.Data)
+	if err != nil {
+		return nil, err
+	}
+	room, err := strconv.Atoi(ureq.Room)
 	if err != nil {
 		return nil, err
 	}
@@ -253,9 +257,64 @@ func (store *StorageT) users(task *Task) (*packUtils.Package, error) {
 	if usrs == nil || len(usrs) == 0 {
 		return nil, errors.New("no users")
 	}
+	for i, usr := range usrs {
+		count, err := store.getCount(ureq.SenderKey, usr.Login)
+		if err != nil {
+			return nil, err
+		}
+		usrs[i].Count = count
+	}
 	jusrs := marshalUsers(usrs)
 	if jusrs == "" {
 		return nil, errors.New("marshal fail")
 	}
 	return packUtils.CreatePack(task.Id, jusrs), nil
+}
+
+func (store *StorageT) sendMail(service, task, data, meta string) (string, string, error) {
+	brokerKey, err := store.getBrokerKey()
+	if err != nil {
+		return "", "", err
+	}
+	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, store.SelfKey(), brokerKey)
+	pack := packUtils.CreatePack(service+"."+task, data)
+	pack.Head.Meta = meta
+	for _, broker := range pkg.Config.Brokers {
+		resp, err := rpc.Send(broker, "ServerBroker.PutMail", pack, opt)
+		if err != nil {
+			errorLogger.Println(err.Error())
+			continue
+		}
+		return resp.Body.Data, resp.Head.Meta, nil
+	}
+	return "", "", errors.New("send fail")
+}
+func (store *StorageT) getKey(login string) (*rsa.PublicKey, error) {
+	data, meta, err := store.sendMail("agent", "get", login, pkg.Config.Keyword)
+	if err != nil {
+		return nil, err
+	}
+	if meta == "error" {
+		return nil, errors.New(data)
+	}
+	return cryptoUtils.ParsePublic(data), nil
+}
+
+func (store *StorageT) getCount(senderKey, receiver string) (int, error) {
+	receiverKey, err := store.getKey(receiver)
+	if err != nil {
+		return -1, err
+	}
+	data, meta, err := store.sendMail("storage_b", "count", senderKey, cryptoUtils.StringPublic(receiverKey))
+	if err != nil {
+		return -1, err
+	}
+	if meta == "error" {
+		return -1, errors.New(data)
+	}
+	count, err := strconv.Atoi(data)
+	if err != nil {
+		return -1, err
+	}
+	return count, nil
 }

@@ -105,7 +105,12 @@ func (node *NodeT) RemoveAccount() error {
 	return nil
 }
 func (node *NodeT) GetContacts() ([]User, error) {
-	data, meta, err := node.SendMail("storage_a", "users", strconv.Itoa(node.Person.Room), pkg.Config.Keyword)
+	ureq := UsersRequest{SenderKey: cryptoUtils.StringPublic(&node.Key.PublicKey), Room: strconv.Itoa(node.Person.Room)}
+	jureq, err := MarshalUsersRequest(&ureq)
+	if err != nil {
+		return nil, err
+	}
+	data, meta, err := node.SendMail("storage_a", "users", jureq, pkg.Config.Keyword)
 	if err != nil {
 		return nil, err
 	}
@@ -190,9 +195,34 @@ func (node *NodeT) SendFile(file []byte, filename, receiver string) error {
 	}
 	return nil
 }
-func (node *NodeT) GetFile(filename string) {
-
+func (node *NodeT) GetFile(filename, receiver string) (*FileMessage, error) {
+	println(filename)
+	file := &FileMessage{filename, "", cryptoUtils.StringPublic(&node.Key.PublicKey)}
+	jf, err := json.Marshal(file)
+	if err != nil {
+		return nil, err
+	}
+	receiverKey, err := node.getKey(receiver)
+	if err != nil {
+		return nil, err
+	}
+	if receiverKey == nil {
+		return nil, errors.New("key parse error")
+	}
+	data, meta, err := node.SendMail("storage_f", "get", string(jf), cryptoUtils.StringPublic(receiverKey))
+	if err != nil {
+		return nil, err
+	}
+	if meta == "error" {
+		return nil, errors.New(data)
+	}
+	file, err = UnmarshalFile(data)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
+
 func (node *NodeT) Messages(receiver string) (*Messages, error) {
 	receiverKey, err := node.getKey(receiver)
 	if err != nil {

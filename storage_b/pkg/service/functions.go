@@ -10,6 +10,7 @@ import (
 	"github.com/ipaqsa/netcom/rpc"
 	"storage_b/pkg"
 	"storage_b/pkg/db"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -139,6 +140,10 @@ func (store *StorageT) getMail() {
 }
 func (task *Task) handle(store *StorageT, brokerKey *rsa.PublicKey) {
 	switch task.Task {
+	case count:
+		infoLogger.Printf("count #%s", task.Id)
+		task.countTask(store, brokerKey)
+		break
 	case save:
 		infoLogger.Printf("save #%s", task.Id)
 		task.saveTask(store, brokerKey)
@@ -176,6 +181,15 @@ func (task *Task) getTask(store *StorageT, brokerKey *rsa.PublicKey) {
 		return
 	}
 	store.sendReport(task.From, pack, brokerKey)
+}
+func (task *Task) countTask(store *StorageT, brokerKey *rsa.PublicKey) {
+	pack, err := store.count(task)
+	if err != nil {
+		pack = packUtils.CreatePack(task.Id, err.Error())
+		pack.Head.Meta = "error"
+		store.sendReport(task.From, pack, brokerKey)
+		return
+	}
 	store.sendReport(task.From, pack, brokerKey)
 }
 func (task *Task) unknownTask(store *StorageT, brokerKey *rsa.PublicKey) {
@@ -192,6 +206,16 @@ func (store *StorageT) sendReport(address string, pack *packUtils.Package, broke
 	}
 }
 
+func (store *StorageT) count(task *Task) (*packUtils.Package, error) {
+	receiver := task.Meta
+	sender := task.Data
+
+	sender, receiver = hashPrepare(sender, receiver)
+
+	countMessage := store.db.CountUnmarkMessages(sender, receiver)
+	c := strconv.Itoa(countMessage)
+	return packUtils.CreatePack(task.Id, c), nil
+}
 func (store *StorageT) save(task *Task) error {
 	msg := db.UnmarshalMessage(task.Data)
 	if msg == nil {

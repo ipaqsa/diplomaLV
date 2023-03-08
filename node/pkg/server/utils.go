@@ -39,12 +39,7 @@ func toContactsHTML(contacts []service.User) *ContactsToHTML {
 		if person.Login == service.Node.Person.Login {
 			continue
 		}
-		contact := ContactToHTML{
-			Login:      person.Login,
-			FirstName:  person.FirstName,
-			SecondName: person.LastName,
-		}
-		data.Contact = append(data.Contact, contact)
+		data.Contact = append(data.Contact, person)
 	}
 	return &data
 }

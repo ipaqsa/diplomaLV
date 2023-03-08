@@ -26,14 +26,8 @@ type DataToHTML struct {
 	Messages service.Messages `json:"Messages"`
 }
 
-type ContactToHTML struct {
-	Login      string
-	FirstName  string
-	SecondName string
-}
-
 type ContactsToHTML struct {
-	Contact []ContactToHTML
+	Contact []service.User
 }
 
 type sendFromHTML struct {

@@ -23,3 +23,12 @@ func marshalUsers(users []db.User) string {
 	marshal, _ := json.Marshal(users)
 	return string(marshal)
 }
+
+func unmarshalUserRequest(data string) (*UsersRequest, error) {
+	var ureq UsersRequest
+	err := json.Unmarshal([]byte(data), &ureq)
+	if err != nil {
+		return nil, err
+	}
+	return &ureq, nil
+}

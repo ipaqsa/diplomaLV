@@ -14,38 +14,6 @@ import (
 	"time"
 )
 
-func (agent *Agent) remove(name string) {
-	agent.storage.mtx.Lock()
-	defer agent.storage.mtx.Unlock()
-	if _, ok := agent.storage.data[name]; ok {
-		delete(agent.storage.data, name)
-		err := db.RemoveKey(name)
-		if err != nil {
-			errorLogger.Println(err.Error())
-			return
-		}
-	}
-}
-func (agent *Agent) save(name string) error {
-	key := agent.Get(name)
-	if key != nil {
-		return errors.New("key exist")
-	}
-	agent.storage.mtx.Lock()
-	agent.storage.data[name] = cryptoUtils.GeneratePrivate(pkg.Config.AKEY_SIZE)
-	agent.storage.mtx.Unlock()
-	return nil
-}
-func (agent *Agent) Get(name string) *rsa.PrivateKey {
-	agent.storage.mtx.Lock()
-	defer agent.storage.mtx.Unlock()
-	if val, ok := agent.storage.data[name]; ok {
-		return val
-	} else {
-		return nil
-	}
-}
-
 func (agent *Agent) fetch() {
 	for {
 		var data []db.InsertData
@@ -113,15 +81,6 @@ func (agent *Agent) getMail() {
 				task.handle(agent)
 			}
 		}
-	}
-}
-
-func (agent *Agent) sendReport(address string, pack *packUtils.Package) {
-	infoLogger.Println("send report")
-	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, agent.Get("agent"), &agent.Get("broker").PublicKey)
-	pack, err := rpc.Send(address, "ServerBroker.PutReport", pack, opt)
-	if err != nil {
-		errorLogger.Println(err.Error())
 	}
 }
 
@@ -204,4 +163,44 @@ func (task *Task) unknownTask(agent *Agent) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
 	pack.Head.Meta = "error"
 	agent.sendReport(task.From, pack)
+}
+func (agent *Agent) sendReport(address string, pack *packUtils.Package) {
+	infoLogger.Println("send report")
+	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, agent.Get("agent"), &agent.Get("broker").PublicKey)
+	pack, err := rpc.Send(address, "ServerBroker.PutReport", pack, opt)
+	if err != nil {
+		errorLogger.Println(err.Error())
+	}
+}
+
+func (agent *Agent) remove(name string) {
+	agent.storage.mtx.Lock()
+	defer agent.storage.mtx.Unlock()
+	if _, ok := agent.storage.data[name]; ok {
+		delete(agent.storage.data, name)
+		err := db.RemoveKey(name)
+		if err != nil {
+			errorLogger.Println(err.Error())
+			return
+		}
+	}
+}
+func (agent *Agent) save(name string) error {
+	key := agent.Get(name)
+	if key != nil {
+		return errors.New("key exist")
+	}
+	agent.storage.mtx.Lock()
+	agent.storage.data[name] = cryptoUtils.GeneratePrivate(pkg.Config.AKEY_SIZE)
+	agent.storage.mtx.Unlock()
+	return nil
+}
+func (agent *Agent) Get(name string) *rsa.PrivateKey {
+	agent.storage.mtx.Lock()
+	defer agent.storage.mtx.Unlock()
+	if val, ok := agent.storage.data[name]; ok {
+		return val
+	} else {
+		return nil
+	}
 }

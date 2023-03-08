@@ -30,31 +30,13 @@
             </a>
             </li>
             <li><a href="/register">
-                <svg viewBox="0 0 24 24" fill="none"
-                     xmlns="http://www.w3.org/2000/svg" id="enter_icon">
-
-                    <g clip-path="url(#clip0_105_1855)">
-
-                        <path d="M9 4.00024H19V18.0002C19 19.1048 18.1046 20.0002 17 20.0002H9" stroke="white"
-                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
-
-                        <path d="M12 15.0002L15 12.0002M15 12.0002L12 9.00024M15 12.0002H5" stroke="white"
-                              stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
-
-                    </g>
-
-                    <defs>
-
-                        <clipPath id="clip0_105_1855">
-
-                            <rect fill="white" height="24" transform="translate(0 0.000244141)" width="24" />
-
-                        </clipPath>
-
-                    </defs>
-
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="enter_icon"><g clip-path="url(#clip0_105_1855)">
+                        <path d="M9 4.00024H19V18.0002C19 19.1048 18.1046 20.0002 17 20.0002H9" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" />
+                        <path d="M12 15.0002L15 12.0002M15 12.0002L12 9.00024M15 12.0002H5" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" /></g>
+                    <defs><clipPath id="clip0_105_1855"><rect fill="white" height="24" transform="translate(0 0.000244141)" width="24" /></clipPath></defs>
                 </svg>
-            </a></li>
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -63,17 +45,29 @@
     <div class="contact">
         {{$receiver := .Receiver}}
         <div class="contact-title">Контакты</div><hr>
+        <div class="search">
+            <svg version="1.1" viewBox="0 0 612.08 612.08" id="search_icon"><g>
+    <path d="M237.927,0C106.555,0,0.035,106.52,0.035,237.893c0,131.373,106.52,237.893,237.893,237.893
+		c50.518,0,97.368-15.757,135.879-42.597l0.028-0.028l176.432,176.433c3.274,3.274,8.48,3.358,11.839,0l47.551-47.551
+		c3.274-3.274,3.106-8.703-0.028-11.838L433.223,373.8c26.84-38.539,42.597-85.39,42.597-135.907C475.82,106.52,369.3,0,237.927,0z
+		 M237.927,419.811c-100.475,0-181.918-81.443-181.918-181.918S137.453,55.975,237.927,55.975s181.918,81.443,181.918,181.918
+		S338.402,419.811,237.927,419.811z"/></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g><g></g>
+            </svg>
+           <input type="text" id="searcher" onkeyup="search()" placeholder="Введите имя контакта">
+        </div>
+        <ul id="contacts">
         {{range .Contacts.Contact}}
         {{if eq .Login $receiver}}
-        <ul class="person active-p" >
-            <li><a class="user" href="/?current={{.Login}}">{{.FirstName}} {{.SecondName}}</a></li>
-        </ul>
+            <li class="person active-p"><a class="user " href="/?current={{.Login}}">{{.FirstName}} {{.LastName}}</a></li>
         {{else}}
-        <ul class="person" >
-            <li><a class="user" href="/?current={{.Login}}">{{.FirstName}} {{.SecondName}}</a></li>
+            <li class="person"><a class="user" href="/?current={{.Login}}">{{.FirstName}} {{.LastName}}
+                    {{if ne .Count 0}}
+                    <div class="count">{{.Count}}</div>
+                    {{end}}
+                </a></li>
+        {{end}}
+        {{end}}
         </ul>
-        {{end}}
-        {{end}}
     </div>
     {{ if ne .Receiver ""}}
     {{ $length := len .Contacts.Contact }}
@@ -88,9 +82,12 @@
                             <div class="msg">
                                 {{if eq .Type "file"}}
                                     <span>
+                                    <a onclick="downloadFile()">
+                                        <span style="display: none">{{.Data}}</span>
                                      <svg id="file_icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                                          <path d="M15.331 6H8.5v20h15V14.154h-8.169z"/><path d="M18.153 6h-.009v5.342H23.5v-.002z"/>
                                      </svg>
+                                    </a>
                                 </span>
                                 {{end}}
                                 <span class="data">{{.Data}}</span>
@@ -104,9 +101,12 @@
                             <div class="msg">
                                 {{if eq .Type "file"}}
                                 <span>
-                                    <svg id="file_icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <a onclick="downloadFile()">
+                                        <span style="display: none">{{.Data}}</span>
+                                    <svg id="file_icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M18.53 9L13 3.47C12.8595 3.32931 12.6688 3.25018 12.47 3.25H8C7.27065 3.25 6.57118 3.53973 6.05546 4.05546C5.53973 4.57118 5.25 5.27065 5.25 6V18C5.25 18.7293 5.53973 19.4288 6.05546 19.9445C6.57118 20.4603 7.27065 20.75 8 20.75H16C16.7293 20.75 17.4288 20.4603 17.9445 19.9445C18.4603 19.4288 18.75 18.7293 18.75 18V9.5C18.7421 9.3116 18.6636 9.13309 18.53 9ZM13.25 5.81L16.19 8.75H13.25V5.81ZM16 19.25H8C7.66848 19.25 7.35054 19.1183 7.11612 18.8839C6.8817 18.6495 6.75 18.3315 6.75 18V6C6.75 5.66848 6.8817 5.35054 7.11612 5.11612C7.35054 4.8817 7.66848 4.75 8 4.75H11.75V9.5C11.7526 9.69811 11.8324 9.88737 11.9725 10.0275C12.1126 10.1676 12.3019 10.2474 12.5 10.25H17.25V18C17.25 18.3315 17.1183 18.6495 16.8839 18.8839C16.6495 19.1183 16.3315 19.25 16 19.25Z" fill="#000000"/>
                                     </svg>
+                                    </a>
                                 </span>
                                 {{end}}
                                 <span class="data">{{.Data}}</span>

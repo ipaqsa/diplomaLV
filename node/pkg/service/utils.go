@@ -49,3 +49,19 @@ func MarshalFile(file []byte, filename, sender string) (string, error) {
 	jfm, err := json.Marshal(fm)
 	return string(jfm), err
 }
+func UnmarshalFile(data string) (*FileMessage, error) {
+	var file FileMessage
+	err := json.Unmarshal([]byte(data), &file)
+	if err != nil {
+		return nil, err
+	}
+	return &file, err
+}
+
+func MarshalUsersRequest(ureq *UsersRequest) (string, error) {
+	marshal, err := json.Marshal(ureq)
+	if err != nil {
+		return "", err
+	}
+	return string(marshal), nil
+}

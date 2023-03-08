@@ -110,15 +110,6 @@ func (admin *AdminT) getMail() {
 	}
 }
 
-func (admin *AdminT) sendReport(address string, pack *packUtils.Package, brokerKey *rsa.PublicKey) {
-	infoLogger.Printf("send report")
-	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, admin.key, brokerKey)
-	pack, err := rpc.Send(address, "ServerBroker.PutReport", pack, opt)
-	if err != nil {
-		errorLogger.Println(err.Error())
-	}
-}
-
 func (task *Task) handle(admin *AdminT, brokerKey *rsa.PublicKey) {
 	switch task.Task {
 	case update:
@@ -186,6 +177,14 @@ func (task *Task) unknownTask(admin *AdminT, brokerKey *rsa.PublicKey) {
 	pack := packUtils.CreatePack(task.Id, "unknown task")
 	pack.Head.Meta = "error"
 	admin.sendReport(task.From, pack, brokerKey)
+}
+func (admin *AdminT) sendReport(address string, pack *packUtils.Package, brokerKey *rsa.PublicKey) {
+	infoLogger.Printf("send report")
+	opt := rpc.CreateOptions(true, pkg.Config.SKEY_SIZE, admin.key, brokerKey)
+	pack, err := rpc.Send(address, "ServerBroker.PutReport", pack, opt)
+	if err != nil {
+		errorLogger.Println(err.Error())
+	}
 }
 
 func (admin *AdminT) register(task *Task) error {

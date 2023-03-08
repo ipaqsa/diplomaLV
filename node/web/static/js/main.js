@@ -79,3 +79,40 @@ function uploadFile(file) {
         }
     })
 }
+
+function search() {
+    let input, filter, ul, li, a, i, txtValue;
+    input = document.getElementById('searcher');
+    filter = input.value.toUpperCase();
+    ul = document.getElementById("contacts");
+    li = ul.getElementsByTagName('li');
+
+    for (i = 0; i < li.length; i++) {
+        a = li[i].getElementsByTagName("a")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+        } else {
+            li[i].style.display = "none";
+        }
+    }
+}
+
+function downloadFile() {
+    let receivern = receiver.innerHTML.trim()
+    let filename = event.currentTarget.getElementsByTagName("span")[0].innerHTML.trim()
+    if ((filename === "")||(receivern === "")) {
+        return
+    }
+
+    const url = "/download?receiver="+receivern+"&filename="+encodeURIComponent(filename)
+    fetch(url, {
+        method: 'GET',
+    }).then((response) => {
+        return response.blob()
+    }).then(async (response) => {
+        window.location.href="/?current="+receivern
+        let file = window.URL.createObjectURL(response)
+        window.location.assign(file)
+    })
+}
